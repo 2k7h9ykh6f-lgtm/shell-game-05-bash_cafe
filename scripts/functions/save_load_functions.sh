@@ -17,7 +17,7 @@ get_saves () {
     saves=($(ls|grep "_save.txt"|awk -F "_save.txt" '{print $1}'))
     if [[ -z "$saves" ]]; then
         return 1
-    fi    
+    fi
     echo -e "\e[4m Your shops: \e[0m"
     for i in "${saves[@]}"; do
         echo " - $i"
@@ -32,6 +32,8 @@ save () {
     echo "day_num=$day_num" >> $FILE
     echo "cash=$cash" >> $FILE
     echo "sales_mult=$sales_mult" >> $FILE
+    echo "unlocked_drinks=$unlocked_drinks" >> $FILE
+    echo "owned_equipment=$owned_equipment" >> $FILE
 }
 
 #asks user which load to open and reads it
@@ -48,11 +50,30 @@ load () {
         read -p "Which shop would you like to load? >>> " input
         save_file=$input"_save.txt"
         if [[ $(ls) == *"$save_file"* ]]; then
-            #load saves file, parse its content into global variables
+            #load save file, parse its content into global variables
             saved_data=$(cat $save_file)
             day_num=$(grep "day_num" <<< "$saved_data"|awk -F "=" '{print $2}')
             cash=$(grep "cash" <<< "$saved_data"|awk -F "=" '{print $2}')
             sales_mult=$(grep "sales_mult" <<< "$saved_data"|awk -F "=" '{print $2}')
+
+            # Load unlocked drinks (default to "0" for backwards compatibility)
+            local saved_unlocked
+            saved_unlocked=$(grep "unlocked_drinks" <<< "$saved_data"|awk -F "=" '{print $2}')
+            if [[ -n "$saved_unlocked" ]]; then
+                unlocked_drinks="$saved_unlocked"
+            else
+                unlocked_drinks="0"
+            fi
+
+            # Load owned equipment (default to empty for backwards compatibility)
+            local saved_equip
+            saved_equip=$(grep "owned_equipment" <<< "$saved_data"|awk -F "=" '{print $2}')
+            if [[ -n "$saved_equip" ]]; then
+                owned_equipment="$saved_equip"
+            else
+                owned_equipment=""
+            fi
+
             break
         fi
             echo "This shop does not exist"

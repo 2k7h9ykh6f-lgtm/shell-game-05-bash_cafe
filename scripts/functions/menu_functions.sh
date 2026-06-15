@@ -1,6 +1,92 @@
 #!/usr/bin/env bash
 . saves/save_load_functions.sh
 
+# ----------------------------------------------------------
+# drink_menu: Display unlocked drinks and let the player
+# choose which drink to sell today. Sets the global variable
+# selected_drink to the chosen drink index.
+# ----------------------------------------------------------
+drink_menu () {
+    clear
+    echo -e "\e[4m=== Drink Menu ===\e[0m"
+    echo ""
+
+    # Build list of unlocked drinks
+    local unlocked_list=()
+    for i in "${!DRINK_NAMES[@]}"; do
+        if is_drink_unlocked "$i"; then
+            unlocked_list+=("$i")
+        fi
+    done
+
+    if (( ${#unlocked_list[@]} == 1 )); then
+        # Only basic coffee is unlocked
+        selected_drink=${unlocked_list[0]}
+        echo "Only ${DRINK_NAMES[$selected_drink]} is available."
+        return 0
+    fi
+
+    # Display unlocked drinks
+    local display_idx=1
+    for i in "${unlocked_list[@]}"; do
+        local bonus_text=""
+        if (( DRINK_DEMAND_BONUSES[$i] > 0 )); then
+            bonus_text=" (+${DRINK_DEMAND_BONUSES[$i]}% demand)"
+        fi
+        echo "  $display_idx. ${DRINK_NAMES[$i]}  (cost: \$${DRINK_MAKE_COSTS[$i]}/cup, suggested price: \$${DRINK_BASE_PRICES[$i]})$bonus_text"
+        display_idx=$((display_idx + 1))
+    done
+
+    echo ""
+    while true; do
+        read -p "Which drink would you like to sell today? [1-$((display_idx-1))] >>> " choice
+        if [[ -z "${choice##[0-9]*}" ]] && (( choice >= 1 && choice < display_idx )); then
+            selected_drink=${unlocked_list[$((choice-1))]}
+            break
+        fi
+        echo "Invalid choice!"
+    done
+
+    echo "Selected: ${DRINK_NAMES[$selected_drink]}"
+    sleep 1
+    return 0
+}
+
+# ----------------------------------------------------------
+# get_drink_order: Ask how many units and at what price for
+# the selected drink. Sets global variables:
+#   drink_count, drink_price, drink_expense
+# ----------------------------------------------------------
+get_drink_order () {
+    local make_cost=${DRINK_MAKE_COSTS[$selected_drink]}
+    drink_expense=$make_cost
+
+    # How many to make
+    while true; do
+        read -p "How many ${DRINK_NAMES[$selected_drink]}s do you wish to make? >>> " drink_count
+        if (( drink_count * make_cost > cash )) || [ ! -z "${drink_count##[0-9]*}" ]; then
+            echo "You cannot do that!"
+        elif [ -z "$drink_count" ]; then
+            echo "Invalid!"
+            :
+        else
+            break
+        fi
+    done
+
+    # How much to charge
+    while true; do
+        read -p "How much do you wish to charge per ${DRINK_NAMES[$selected_drink]}? >>> " drink_price
+        if [ ! -z "${drink_price##[0-9]*}" ]; then
+            echo "You cannot do that!"
+        elif [ -z "$drink_price" ]; then
+            :
+        else
+            break
+        fi
+    done
+}
+
 center () {
     #get size of terminal window
     width=$(tput cols)
@@ -108,9 +194,8 @@ handle_menu () {
     #Continue: save game then continue
     1)  save
         return 1 ;;
-    #Upgrade: work in progress
-    2)  echo "Upgrade feature: WIP"
-        sleep 1
+    #Upgrade: open the upgrade shop
+    2)  show_upgrade_menu
         save
         return 2 ;;
     #New_Save: Get save name and creates new save
@@ -119,7 +204,7 @@ handle_menu () {
         return 3 ;;
     #Save_As: Save overwrites current save file under shop_name
     4)  save
-        return 4;
+        return 4 ;;
     #Load_Game: Save current session then load new game
     5)  save
         load
@@ -127,7 +212,7 @@ handle_menu () {
     #Exit: Save current session then exit
     6)  save
         exit 0 ;;
-    *)  echo "ERROR" 
-        return 10;
+    *)  echo "ERROR"
+        return 10 ;;
     esac
 }
