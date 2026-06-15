@@ -28,6 +28,9 @@ save () {
     echo "day_num=$day_num" >> $FILE
     echo "cash=$cash" >> $FILE
     echo "sales_mult=$sales_mult" >> $FILE
+    echo "profit_streak=$profit_streak" >> $FILE
+    echo "total_income=$total_income" >> $FILE
+    echo "ach_unlocked=${ach_unlocked[*]}" >> $FILE
 }
 
 #asks user which load to open and reads it
@@ -42,7 +45,7 @@ load () {
     #check if save file exists
     while true; do
         read -p "Which shop would you like to load? >>> " input
-        FILE="functions/"
+        FILE=""
         save_file="$input"_save.txt
         if [[ $(ls) == *"$save_file"* ]]; then
             #load saves file, parse its content into global variables
@@ -51,6 +54,11 @@ load () {
             day_num=$(grep "day_num" <<< "$saved_data"|awk -F "=" '{print $2}')
             cash=$(grep "cash" <<< "$saved_data"|awk -F "=" '{print $2}')
             sales_mult=$(grep "sales_mult" <<< "$saved_data"|awk -F "=" '{print $2}')
+            #achievement state; defaults keep saves that predate achievements working
+            ps=$(grep "profit_streak" <<< "$saved_data"|awk -F "=" '{print $2}'); profit_streak=${ps:-0}
+            ti=$(grep "total_income" <<< "$saved_data"|awk -F "=" '{print $2}'); total_income=${ti:-0}
+            ach_raw=$(grep "ach_unlocked" <<< "$saved_data"|awk -F "=" '{print $2}')
+            if [[ -n "$ach_raw" ]]; then ach_unlocked=( $ach_raw ); fi
             break
         fi
             echo "This shop does not exist"

@@ -73,7 +73,7 @@ day_menu () {
     tput clear
     title="Day Options"
     in=$2
-    options="Continue,Upgrade,New_Save,Save_As,Load_Game,Exit"
+    options="Continue,Upgrade,Achievements,New_Save,Save_As,Load_Game,Exit"
     arr=$(echo $options | tr "," "\n")
     x=0
     y=0
@@ -113,19 +113,23 @@ handle_menu () {
         sleep 1
         save
         return 2 ;;
-    #New_Save: Get save name and creates new save
-    3)  new_save
+    #Achievements: show all achievements (earned/locked) then continue
+    3)  show_achievements
         save
         return 3 ;;
+    #New_Save: Get save name and creates new save
+    4)  new_save
+        save
+        return 4 ;;
     #Save_As: Save overwrites current save file under shop_name
-    4)  save
-        return 4;
-    #Load_Game: Save current session then load new game
     5)  save
-        load
         return 5 ;;
-    #Exit: Save current session then exit
+    #Load_Game: Save current session then load new game
     6)  save
+        load
+        return 6 ;;
+    #Exit: Save current session then exit
+    7)  save
         exit 0 ;;
     *)  echo "ERROR" 
         return 10;

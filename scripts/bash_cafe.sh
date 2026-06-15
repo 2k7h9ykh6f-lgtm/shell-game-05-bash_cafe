@@ -4,6 +4,7 @@
 . functions/calculation_functions.sh
 . functions/weather_functions.sh
 . functions/upgrade_functions.sh
+. functions/achievement_functions.sh
 
 #counts the date
 day_num=1
@@ -13,6 +14,9 @@ expense=1
 sales_mult=1
 #cash user has to spend
 cash=100
+#profit_streak counts consecutive profitable days; total_income is cumulative income (both drive achievements)
+profit_streak=0
+total_income=0
 shop_name=""
 SAVE_FILE=""
 
@@ -77,8 +81,10 @@ while true; do
             echo -e "\e[31mYou paid '$'50 in weekly bills\e[0m"
         fi
     day_num=$(( day_num+1 ))
+    #update goals and prompt any achievements newly unlocked this day (in achievement_functions)
+    update_achievements "$profit" "$income"
     echo ""
-    
+
     read -p "Press enter to continue: "
     clear
     #get next action from user (in menu_functions)
