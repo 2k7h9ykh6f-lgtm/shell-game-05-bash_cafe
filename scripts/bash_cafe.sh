@@ -13,6 +13,10 @@ expense=1
 sales_mult=1
 #cash user has to spend
 cash=100
+#number of hired employees; each reduces waste from unsold coffees
+employees=0
+#daily wage paid per employee at daily settlement
+wage=5
 shop_name=""
 SAVE_FILE=""
 
@@ -70,6 +74,13 @@ while true; do
     #display the days summary
     echo "Profit: $profit"
     cash=$(( cash+profit ))
+
+    #pay daily wages to employees (shown at daily settlement)
+    if (( employees > 0 )); then
+        wage_total=$(( employees*wage ))
+        cash=$(( cash-wage_total ))
+        echo -e "\e[31mYou have $employees employee(s); paid \$$wage_total in daily wages\e[0m"
+    fi
     
         if ! (( day_num % 7 )) ; then
             cash=$(( cash-50 ))
