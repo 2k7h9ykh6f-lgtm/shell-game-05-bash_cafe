@@ -17,6 +17,36 @@ center () {
 
 }
 
+# prompt_drink <label>: reads <label>_cnt and <label>_cost for a drink line,
+# validating numeric input and that the combined cups made (this line plus the
+# already-chosen other line) stay within cash.
+prompt_drink () {
+    local label=$1 cnt cost
+    # cups already committed to the other drink line this day. The current
+    # line's global is still 0 at this point, so this is just the other line.
+    local other=$(( hot_cnt + cold_cnt ))
+    while true; do
+        read -p "How many ${label} drinks do you wish to make? >>> " cnt
+        if [ -z "$cnt" ] || [ ! -z "${cnt##[0-9]*}" ]; then
+            echo "invalid!"
+        elif (( (other + cnt) * expense > cash )); then
+            echo "You cannot afford that!"
+        else
+            break
+        fi
+    done
+    while true; do
+        read -p "How much do you wish to charge per ${label} drink? >>> " cost
+        if [ -z "$cost" ] || [ ! -z "${cost##[0-9]*}" ]; then
+            echo "invalid!"
+        else
+            break
+        fi
+    done
+    printf -v "${label}_cnt"  '%s' "$cnt"
+    printf -v "${label}_cost" '%s' "$cost"
+}
+
 #functions get_save, new_save, save, and load are in save_load_functions
 begin () {
     #gets all saves from file and puts them in array
@@ -119,7 +149,7 @@ handle_menu () {
         return 3 ;;
     #Save_As: Save overwrites current save file under shop_name
     4)  save
-        return 4;
+        return 4 ;;
     #Load_Game: Save current session then load new game
     5)  save
         load
