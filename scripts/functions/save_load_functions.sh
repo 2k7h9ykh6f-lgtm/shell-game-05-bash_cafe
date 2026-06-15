@@ -32,6 +32,8 @@ save () {
     echo "day_num=$day_num" >> $FILE
     echo "cash=$cash" >> $FILE
     echo "sales_mult=$sales_mult" >> $FILE
+    echo "employee_count=$employee_count" >> $FILE
+    echo "employee_wage=$employee_wage" >> $FILE
 }
 
 #asks user which load to open and reads it
@@ -53,6 +55,10 @@ load () {
             day_num=$(grep "day_num" <<< "$saved_data"|awk -F "=" '{print $2}')
             cash=$(grep "cash" <<< "$saved_data"|awk -F "=" '{print $2}')
             sales_mult=$(grep "sales_mult" <<< "$saved_data"|awk -F "=" '{print $2}')
+            employee_count=$(grep "employee_count" <<< "$saved_data"|awk -F "=" '{print $2}')
+            employee_wage=$(grep "employee_wage" <<< "$saved_data"|awk -F "=" '{print $2}')
+            employee_count=${employee_count:-0}
+            employee_wage=${employee_wage:-5}
             break
         fi
             echo "This shop does not exist"

@@ -13,6 +13,11 @@ expense=1
 sales_mult=1
 #cash user has to spend
 cash=100
+#employee system
+employee_count=0
+employee_wage=5
+#base max coffee production (increased by employees)
+base_max_coffee=50
 shop_name=""
 SAVE_FILE=""
 
@@ -35,13 +40,17 @@ while true; do
     #get user input (coffee_cnt and coffee_cost)
     tput rev;echo " Cash: $cash ";tput sgr0
     echo ""
+    max_coffee=$(( base_max_coffee + employee_count * 20 ))
+    echo "Max coffees you can make today: $max_coffee (base $base_max_coffee + $employee_count employees x 20)"
+    echo ""
     while true; do
         read -p "How many coffees do you wish make? >>> " coffee_cnt
-        if (( coffee_cnt*expense > cash)) || [ ! -z "${coffee_cnt##[0-9]*}" ]; then
-            echo "You cannot do that!"
-        elif [ -z "$coffee_cnt" ]; then
-            echo "invalid!"
-	    :
+        if [ ! -z "${coffee_cnt##[0-9]*}" ] || [ -z "$coffee_cnt" ]; then
+            echo "Please enter a valid number!"
+        elif (( coffee_cnt*expense > cash )); then
+            echo "You don't have enough cash! (need $(( coffee_cnt*expense )))"
+        elif (( coffee_cnt > max_coffee )); then
+            echo "You can only make $max_coffee coffees! Hire more employees to increase capacity."
         else
             break
         fi
@@ -50,10 +59,10 @@ while true; do
         read -p "How much do you wish to charge per coffee? >>> " coffee_cost
         if [ ! -z "${coffee_cost##[0-9]*}" ]; then
             echo "You cannot do that!"
-	elif [ -z "$coffee_cnt" ]; then
-	    :
+        elif [ -z "$coffee_cost" ]; then
+            echo "Please enter a valid number!"
         else
-            break  
+            break
         fi
     done
     
@@ -70,7 +79,15 @@ while true; do
     #display the days summary
     echo "Profit: $profit"
     cash=$(( cash+profit ))
-    
+
+    #deduct employee wages
+    if (( employee_count > 0 )); then
+        total_wages=$(( employee_count * employee_wage ))
+        cash=$(( cash - total_wages ))
+        echo ""
+        echo -e "\e[33mPaid \$$total_wages in employee wages ($employee_count employees x \$$employee_wage)\e[0m"
+    fi
+
         if ! (( day_num % 7 )) ; then
             cash=$(( cash-50 ))
             echo ""

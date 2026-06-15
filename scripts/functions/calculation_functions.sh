@@ -18,7 +18,17 @@ calculate_profit () {
         income=$(( sales*cost ))
     fi
     echo "Income: $income"
+    #calculate waste reduction from employees (each employee reduces waste by 10%, max 50%)
+    waste_pct=$(( employee_count * 10 ))
+    if (( waste_pct > 50 )); then waste_pct=50; fi
+    unsold=$(( count - sales ))
+    if (( unsold < 0 )); then unsold=0; fi
+    waste_saved=$(( unsold * waste_pct / 100 ))
+    effective_cost=$(( count - waste_saved ))
+    if (( waste_saved > 0 )); then
+        echo "Employees saved \$$waste_saved in waste (${waste_pct}% reduction)"
+    fi
     #calculate profit
-    profit=$(( income-count-$((sales/2)) ))
+    profit=$(( income-effective_cost-$((sales/2)) ))
     return $profit
 }

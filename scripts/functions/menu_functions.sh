@@ -108,10 +108,8 @@ handle_menu () {
     #Continue: save game then continue
     1)  save
         return 1 ;;
-    #Upgrade: work in progress
-    2)  echo "Upgrade feature: WIP"
-        sleep 1
-        save
+    #Upgrade: open upgrade shop
+    2)  upgrade_menu
         return 2 ;;
     #New_Save: Get save name and creates new save
     3)  new_save
@@ -119,7 +117,7 @@ handle_menu () {
         return 3 ;;
     #Save_As: Save overwrites current save file under shop_name
     4)  save
-        return 4;
+        return 4 ;;
     #Load_Game: Save current session then load new game
     5)  save
         load
