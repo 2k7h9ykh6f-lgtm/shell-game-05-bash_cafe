@@ -4,6 +4,7 @@
 . functions/calculation_functions.sh
 . functions/weather_functions.sh
 . functions/upgrade_functions.sh
+. functions/achievement_functions.sh
 
 #counts the date
 day_num=1
@@ -66,11 +67,11 @@ while true; do
     profit=0    
     #in calculation_functions
     calculate_profit "$weather" "$coffee_cost" "$coffee_cnt"
-    
+
     #display the days summary
     echo "Profit: $profit"
     cash=$(( cash+profit ))
-    
+
         if ! (( day_num % 7 )) ; then
             cash=$(( cash-50 ))
             echo ""
@@ -78,9 +79,23 @@ while true; do
         fi
     day_num=$(( day_num+1 ))
     echo ""
-    
+
+    # --- Achievement system: update stats and check for new unlocks ---
+    # calculate coffees sold today (min of sales demand and count made)
+    if (( sales > coffee_cnt )); then
+        day_coffees_sold=$coffee_cnt
+    else
+        day_coffees_sold=$sales
+    fi
+    update_stats "$profit" "$income" "$day_coffees_sold"
+    check_achievements
+
     read -p "Press enter to continue: "
     clear
+
+    # Show achievement popup if any were newly unlocked
+    show_new_achievements
+
     #get next action from user (in menu_functions)
     day_menu
     #case statement for menu return (in menu_functions)
