@@ -100,6 +100,36 @@ day_menu () {
     done
 }
 
+select_drink () {
+    #collect the registry indices of currently-unlocked drinks
+    unlocked_idx=()
+    for i in "${!drink_names[@]}"; do
+        if [[ ${drink_unlocked[$i]} -eq 1 ]]; then
+            unlocked_idx+=("$i")
+        fi
+    done
+    #with only one drink unlocked there is no choice to make, auto-select it
+    if [[ ${#unlocked_idx[@]} -le 1 ]]; then
+        sel=${unlocked_idx[0]}
+        return
+    fi
+    echo "Which drink would you like to sell today?"
+    n=1
+    for i in "${unlocked_idx[@]}"; do
+        echo "$n. ${drink_names[$i]}"
+        n=$(( n+1 ))
+    done
+    while true; do
+        read -p "Enter your choice [1-${#unlocked_idx[@]}] >>> " choice
+        if ! [[ "$choice" =~ ^[0-9]+$ ]] || (( choice < 1 )) || (( choice > ${#unlocked_idx[@]} )); then
+            echo "Invalid choice!"
+        else
+            sel=${unlocked_idx[$(( choice-1 ))]}
+            break
+        fi
+    done
+}
+
 #handle input from user after menu is displayed
 #save, new_save, and load are in save_load_functions.sh
 handle_menu () {
@@ -108,9 +138,8 @@ handle_menu () {
     #Continue: save game then continue
     1)  save
         return 1 ;;
-    #Upgrade: work in progress
-    2)  echo "Upgrade feature: WIP"
-        sleep 1
+    #Upgrade: buy new drinks to unlock them
+    2)  upgrade_menu
         save
         return 2 ;;
     #New_Save: Get save name and creates new save
@@ -119,7 +148,7 @@ handle_menu () {
         return 3 ;;
     #Save_As: Save overwrites current save file under shop_name
     4)  save
-        return 4;
+        return 4 ;;
     #Load_Game: Save current session then load new game
     5)  save
         load

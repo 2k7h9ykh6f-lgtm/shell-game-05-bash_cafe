@@ -28,6 +28,7 @@ save () {
     echo "day_num=$day_num" >> $FILE
     echo "cash=$cash" >> $FILE
     echo "sales_mult=$sales_mult" >> $FILE
+    echo "unlocked_drinks=$(IFS=,; echo "${drink_unlocked[*]}")" >> $FILE
 }
 
 #asks user which load to open and reads it
@@ -42,15 +43,19 @@ load () {
     #check if save file exists
     while true; do
         read -p "Which shop would you like to load? >>> " input
-        FILE="functions/"
         save_file="$input"_save.txt
         if [[ $(ls) == *"$save_file"* ]]; then
             #load saves file, parse its content into global variables
             shop_name=$input
-            saved_data=$(cat $FILE"$save_file")
+            saved_data=$(cat "$save_file")
             day_num=$(grep "day_num" <<< "$saved_data"|awk -F "=" '{print $2}')
             cash=$(grep "cash" <<< "$saved_data"|awk -F "=" '{print $2}')
             sales_mult=$(grep "sales_mult" <<< "$saved_data"|awk -F "=" '{print $2}')
+            #restore unlocked drinks; older saves without this line default to Coffee only
+            unlocked_line=$(grep "unlocked_drinks" <<< "$saved_data"|awk -F "=" '{print $2}')
+            if [[ -n "$unlocked_line" ]]; then
+                IFS=',' read -ra drink_unlocked <<< "$unlocked_line"
+            fi
             break
         fi
             echo "This shop does not exist"
