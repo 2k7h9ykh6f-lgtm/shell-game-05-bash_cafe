@@ -6,7 +6,7 @@ calculate_profit () {
     count=$3
     #calculate # of sales
     mult=$(( 5+RANDOM%10 ))
-    sales=$(( $(( $(($((weather-20))*10 - mult*cost))/2 ))*sales_mult))
+    sales=$(( $(( $(($((weather-20))*10 - mult*cost))/2 ))*sales_mult/100))
     if [[ ! $sales -gt 0 ]]; then
         sales=0
     fi
