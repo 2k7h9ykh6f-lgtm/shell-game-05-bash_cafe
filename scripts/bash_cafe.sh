@@ -11,6 +11,8 @@ day_num=1
 expense=1
 #sales_mult multiplies the number of sales everyday, can be increased using upgrades (not added yet)
 sales_mult=1
+#drink_mult: weather-based demand modifier for the selected drink type (set daily via weather_functions)
+drink_mult=1
 #cash user has to spend
 cash=100
 shop_name=""
@@ -28,15 +30,33 @@ while true; do
     sleep 1
     tput clear
     weather=$(( 20+RANDOM%15 ))
+    #classify weather and determine drink demand modifiers (in weather_functions)
+    get_weather_type "$weather"
     #centers cursor and outputs text in middle of terminal (in menu_functions)
-    center "Weather: $weather"
+    center "Weather: $weather ($weather_type)"
     sleep 1
+    tput clear
+    #drink type selection - different drinks have different demand based on weather
+    echo "Weather: $weather ($weather_type)"
+    echo ""
+    echo "Choose your drink type:"
+    echo "1. Hot Coffee  (x$hot_drink_mult demand)"
+    echo "2. Iced Coffee (x$iced_drink_mult demand)"
+    while true; do
+        read -p ">>> " drink_choice
+        case "$drink_choice" in
+            1) drink_type="hot"; break ;;
+            2) drink_type="iced"; break ;;
+            *) echo "Invalid choice!" ;;
+        esac
+    done
+    get_drink_mult "$drink_type"
     tput clear
     #get user input (coffee_cnt and coffee_cost)
     tput rev;echo " Cash: $cash ";tput sgr0
     echo ""
     while true; do
-        read -p "How many coffees do you wish make? >>> " coffee_cnt
+        read -p "How many ${drink_type} coffees do you wish make? >>> " coffee_cnt
         if (( coffee_cnt*expense > cash)) || [ ! -z "${coffee_cnt##[0-9]*}" ]; then
             echo "You cannot do that!"
         elif [ -z "$coffee_cnt" ]; then
@@ -65,7 +85,7 @@ while true; do
     echo -e "\e[1;7m $shop_name on Day $day_num \e[0m"  
     profit=0    
     #in calculation_functions
-    calculate_profit "$weather" "$coffee_cost" "$coffee_cnt"
+    calculate_profit "$weather" "$coffee_cost" "$coffee_cnt" "$drink_mult"
     
     #display the days summary
     echo "Profit: $profit"
