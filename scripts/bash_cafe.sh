@@ -3,6 +3,7 @@
 . functions/menu_functions.sh
 . functions/calculation_functions.sh
 . functions/weather_functions.sh
+. functions/event_functions.sh
 . functions/upgrade_functions.sh
 
 #counts the date
@@ -15,6 +16,11 @@ sales_mult=1
 cash=100
 shop_name=""
 SAVE_FILE=""
+#per-day random event modifiers (percentages, 100 = no change); set by roll_daily_event each day
+current_event=0
+event_cost_mult=100
+event_customer_mult=100
+event_revenue_mult=100
 
 #asks users to load old sessions or create new session (in menu_functions)
 begin
@@ -32,6 +38,9 @@ while true; do
     center "Weather: $weather"
     sleep 1
     tput clear
+    #roll and reveal today's random event before the player decides (in event_functions)
+    roll_daily_event
+    display_event "$current_event"
     #get user input (coffee_cnt and coffee_cost)
     tput rev;echo " Cash: $cash ";tput sgr0
     echo ""
